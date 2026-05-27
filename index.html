@@ -1,463 +1,531 @@
 <!DOCTYPE html>
-<html lang="ur" dir="rtl">
+<html lang="ur">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Khalid Ali Pechuha - UdharBook PRO</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap');
-        body {
-            background: radial-gradient(circle at top right, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            color: #ffffff;
-            font-family: sans-serif;
-            min-height: 100vh;
-        }
-        .urdu-font { font-family: 'Noto Nastaliq Urdu', serif; }
-        
-        /* Premium Apple-Style Glassmorphism */
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-        .glass-input {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-        }
-        .glass-input:focus {
-            outline: none;
-            border-color: #0ea5e9;
-            box-shadow: 0 0 10px rgba(14, 165, 233, 0.4);
-            background: rgba(0, 0, 0, 0.4);
-        }
-        
-        /* Scrollbar Hide */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Khalid Ali Pechuha - UdharBook PRO</title>
+<!-- Firebase App + Database + Auth -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<!-- html2canvas for receipts -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&family=Poppins:wght@400;500;600;700&family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  /* ==================== Base & Theme Variables ==================== */
+  :root { --p: #10b981; --p-dark: #064e3b; --gold: #fbbf24; --gold-dark: #d97706; --danger: #ef4444; --success: #10b981; --warn: #f59e0b; --bg: #042f22; --card: rgba(15, 45, 37, 0.85); --glass: rgba(255,255,255,0.05); --text: #f1f5f9; --text-dim: #a7f3d0; --border: rgba(16, 185, 129, 0.25); }
+  [data-theme="default"] { --p: #6366f1; --p-dark: #4f46e5; --bg: #0f172a; --card: rgba(30,41,59,0.7); --border: rgba(255,255,255,0.1); --text-dim: #94a3b8; }
+  [data-theme="gold"] { --p: #fbbf24; --p-dark: #d97706; --bg: #1c1917; --card: rgba(44,40,36,0.75); --border: rgba(251,191,36,0.15); --text: #fafaf9; --text-dim: #d6d3d1; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, var(--bg) 0%, #021710 100%); color: var(--text); min-height: 100vh; padding-bottom: 90px; transition: all 0.4s ease; overflow-x: hidden; }
+
+  /* ==================== Overlay for License Screen ==================== */
+  .screen-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, var(--bg) 0%, #021710 100%); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+
+  /* ==================== Main App ==================== */
+  .app { max-width: 480px; margin: 0 auto; position: relative; }
+  .header { background: linear-gradient(135deg, var(--p) 0%, var(--p-dark) 100%); padding: 14px 16px 18px; border-radius: 0 0 28px 28px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); position: sticky; top: 0; z-index: 100; text-align: center; border-bottom: 2px solid var(--gold); }
+  .bismillah { font-family: 'Amiri', serif; font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #ffffff 0%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 2px; }
+  .header h1 { font-size: 19px; font-weight: 700; text-shadow: 0 2px 6px rgba(0,0,0,0.4); color: #fff; }
+  .header p { font-size: 10px; opacity: 0.9; margin-top: 2px; color: var(--gold); font-weight: 600; letter-spacing: 0.5px; }
+  .clock-badge { background: rgba(0,0,0,0.5); border: 1px solid var(--gold); color: var(--gold); font-size: 11px; padding: 5px 12px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-weight: 600; box-shadow: 0 0 10px rgba(251,191,36,0.2); }
+  .sync-status { position: absolute; top: 14px; right: 12px; font-size: 9px; padding: 4px 8px; border-radius: 8px; background: rgba(16,185,129,0.25); color: #fff; font-weight: 600; }
+  .sync-status.offline { background: rgba(239,68,68,0.3); color: #ff9999; }
+  .sync-status.saving { background: rgba(245,158,11,0.3); color: var(--gold); }
+
+  /* ==================== License Timer ==================== */
+  .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 20px 0; }
+  .timer-watch { font-size: 48px; margin-bottom: 10px; animation: ticktock 1s infinite alternate ease-in-out; display: inline-block; }
+  @keyframes ticktock { 0% { transform: rotate(-15deg); } 100% { transform: rotate(15deg); } }
+  .progress-bar-container { width: 80%; background: rgba(255,255,255,0.1); height: 6px; border-radius: 10px; overflow: hidden; margin-top: 15px; border: 1px solid var(--border); }
+  .progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--gold) 0%, var(--p) 100%); border-radius: 10px; transition: width 0.1s linear; }
+  .countdown-text { font-size: 13px; color: var(--gold); font-weight: 600; margin-top: 8px; font-family: monospace; }
+
+  /* ==================== Stats ==================== */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 12px 16px; margin-top: -10px; }
+  .stat-card { background: var(--card); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 16px; padding: 12px 6px; text-align: center; box-shadow: 0 8px 16px rgba(0,0,0,0.25); }
+  .stat-card .icon { font-size: 18px; margin-bottom: 2px; }
+  .stat-card .label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; font-weight: 500; }
+  .stat-card .value { font-size: 13px; font-weight: 700; margin-top: 2px; }
+
+  /* ==================== Bottom Nav ==================== */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); backdrop-filter: blur(25px); border-top: 2px solid var(--border); display: flex; justify-content: space-around; padding: 12px 0 20px; z-index: 100; max-width: 480px; margin: 0 auto; border-radius: 20px 20px 0 0; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; opacity: 0.6; color: var(--text); }
+  .nav-item.active { opacity: 1; color: var(--gold); font-weight: 700; }
+  .nav-item .icon { font-size: 22px; }
+  .nav-item .label { font-size: 10px; }
+
+  /* ==================== Cards & Inputs ==================== */
+  .container { padding: 12px 16px; }
+  .card { background: var(--card); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 18px; padding: 16px; margin-bottom: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+  .card-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: var(--gold); }
+  input, select, textarea { width: 100%; padding: 12px 14px; margin: 8px 0; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 14px; font-family: 'Poppins', sans-serif; transition: all 0.3s; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--gold); background: rgba(0,0,0,0.5); }
+  .btn { width: 100%; padding: 12px; margin: 8px 0; background: linear-gradient(135deg, var(--p) 0%, var(--p-dark) 100%); border: none; border-radius: 12px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn:active { transform: scale(0.97); }
+  .btn-secondary { background: rgba(255,255,255,0.08); border: 1px solid var(--border); box-shadow: none; color: var(--text); }
+  .btn-danger { background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%); }
+  .btn-warning { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%); color: #000; font-weight: bold; }
+  .btn-sm { padding: 6px 12px; font-size: 11px; width: auto; margin: 0; border-radius: 8px; }
+
+  /* ==================== Customer Cards ==================== */
+  .customer-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+  .customer-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px; }
+  .customer-name { font-size: 15px; font-weight: 600; color: #fff; }
+  .customer-phone { font-size: 11px; color: var(--text-dim); }
+  .balance { font-size: 16px; font-weight: 700; }
+  .balance.debit { color: #f87171; }
+  .balance.credit { color: #34d399; }
+
+  /* ==================== Modal ==================== */
+  .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(2,23,16,0.92); backdrop-filter: blur(12px); z-index: 200; padding: 16px; overflow-y: auto; }
+  .modal-content { max-width: 480px; margin: 10px auto; padding-bottom: 40px; }
+  .ledger-item { background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .ledger-date { font-size: 11px; color: var(--text-dim); }
+  .ledger-type { font-size: 10px; padding: 2px 6px; border-radius: 5px; font-weight: 600; }
+  .type-debit { background: rgba(239,68,68,0.2); color: #f87171; }
+  .type-credit { background: rgba(16,185,129,0.2); color: #34d399; }
+  .hidden { display: none !important; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .loader { text-align: center; padding: 30px; color: var(--text-dim); }
+
+  /* ==================== WhatsApp & Action Buttons ==================== */
+  .whatsapp-redirect-btn { background: linear-gradient(135deg, #25d366 0%, #075e54 100%); color: white; font-weight: bold; font-size: 13px; border: none; padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; margin-top: 15px; }
+  .btn-action { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 12px; border-radius: 14px; font-weight: 600; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease; cursor: pointer; }
+  .btn-action:active { transform: scale(0.96); }
+  .btn-whatsapp { border-color: rgba(37,211,102,0.3); color: #a7f3d0; background: rgba(37,211,102,0.08); }
+  .btn-download { border-color: rgba(99,102,241,0.3); color: #c7d2fe; background: rgba(99,102,241,0.08); }
+  .btn-delete-pro { background: rgba(239,68,68,0.05); border: 1px dashed rgba(239,68,68,0.4); color: #f87171; width: 100%; padding: 14px; border-radius: 14px; font-weight: 600; font-size: 13px; margin-top: 20px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+  /* ==================== Bank Receipt (Summary & Full) ==================== */
+  .bank-receipt-wrapper { background: #ffffff; border-radius: 4px; padding: 0; margin: 16px 0; font-family: 'Inter', sans-serif; color: #1a1a1a; box-shadow: 0 2px 12px rgba(0,0,0,0.15); border: 1px solid #d1d5db; position: relative; overflow: hidden; display: none; max-width: 400px; margin-left: auto; margin-right: auto; }
+  .bank-receipt-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-25deg); font-size: 60px; font-weight: 800; color: rgba(0,0,0,0.025); white-space: nowrap; pointer-events: none; letter-spacing: 4px; z-index: 0; }
+  .bank-receipt-header { background: #0d4f3c; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 1; }
+  .bank-receipt-header .bank-logo-area { display: flex; align-items: center; gap: 8px; }
+  .bank-receipt-header .bank-icon { width: 32px; height: 32px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #0d4f3c; }
+  .bank-receipt-header .bank-name { color: #fff; font-weight: 700; font-size: 14px; letter-spacing: 0.5px; line-height: 1.2; }
+  .bank-receipt-header .bank-name small { font-weight: 400; font-size: 9px; display: block; opacity: 0.85; letter-spacing: 1px; }
+  .bank-receipt-header .receipt-badge { background: #fff; color: #0d4f3c; font-size: 9px; font-weight: 700; padding: 4px 10px; border-radius: 3px; letter-spacing: 1px; text-transform: uppercase; }
+  .bank-receipt-body { padding: 16px; position: relative; z-index: 1; background: #fff; }
+  .bank-receipt-body .receipt-title { text-align: center; font-weight: 700; font-size: 13px; color: #0d4f3c; letter-spacing: 1px; margin-bottom: 14px; text-transform: uppercase; border-bottom: 2px solid #0d4f3c; padding-bottom: 8px; }
+  .bank-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dotted #e5e7eb; font-size: 12px; }
+  .bank-row .bank-label { color: #6b7280; font-weight: 500; font-size: 11px; text-transform: uppercase; }
+  .bank-row .bank-value { color: #111827; font-weight: 600; text-align: right; font-size: 12px; font-family: 'Roboto Mono', monospace; }
+  .bank-row.highlight { background: #f0fdf6; margin: 4px -8px; padding: 10px 8px; border-radius: 4px; border-bottom: 1px solid #d1fae5; }
+  .bank-row.highlight .bank-value { color: #0d4f3c; font-size: 15px; font-weight: 700; }
+  .bank-amount-words { background: #fafbfc; border: 1px solid #e5e7eb; border-radius: 4px; padding: 10px 12px; margin: 10px 0; font-size: 11px; color: #374151; font-style: italic; text-align: center; }
+  .bank-receipt-footer { background: #f9fafb; padding: 10px 16px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1; font-size: 9px; color: #9ca3af; }
+  .bank-receipt-footer .footer-stamp { font-weight: 700; color: #0d4f3c; font-size: 10px; text-transform: uppercase; }
+  .bank-barcode-strip { height: 20px; background: repeating-linear-gradient(90deg, #1a1a1a 0px, #1a1a1a 2px, #fff 2px, #fff 4px); margin: 0 16px 8px; border-radius: 2px; opacity: 0.7; }
+  .bank-ref-no { text-align: center; font-size: 9px; color: #9ca3af; padding: 4px 16px 8px; font-family: 'Roboto Mono', monospace; }
+
+  /* ==================== Quick Pay Section ==================== */
+  .quick-pay-section { background: rgba(245,158,11,0.06); border: 1px dashed rgba(245,158,11,0.35); border-radius: 14px; padding: 14px; margin: 14px 0; }
+  .quick-pay-section .qp-title { font-size: 12px; font-weight: 700; color: #fde68a; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .quick-pay-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .quick-pay-row input, .quick-pay-row select { flex: 1; min-width: 80px; padding: 10px; margin: 4px 0; }
+  .quick-pay-row .btn { flex: 0 0 auto; padding: 10px 16px; font-size: 12px; }
+
+  /* ==================== Balance Badges ==================== */
+  .balance-indicator { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+  .balance-indicator.owing { background: #fef2f2; color: #dc2626; }
+  .balance-indicator.advance { background: #ecfdf5; color: #059669; }
+  .balance-indicator.settled { background: #f0fdf4; color: #16a34a; }
+
+  /* ==================== Statement Table ==================== */
+  .statement-table { width: 100%; border-collapse: collapse; font-size: 10px; margin: 10px 0; }
+  .statement-table th { background: #0d4f3c; color: white; padding: 6px; text-transform: uppercase; font-size: 9px; }
+  .statement-table td { padding: 5px; border-bottom: 1px solid #e5e7eb; }
+  .statement-table .txn-debit { color: #dc2626; font-weight: 600; }
+  .statement-table .txn-credit { color: #059669; font-weight: 600; }
+  .statement-footer-row td { font-weight: 700; background: #f0fdf6; }
+</style>
 </head>
-<body class="p-2 sm:p-4">
+<body>
 
-    <!-- 1. LOGIN SCREEN -->
-    <div id="login-screen" class="min-h-screen flex items-center justify-center">
-        <div class="glass-panel p-8 sm:p-10 text-center max-w-md w-full">
-            <div class="w-24 h-24 mx-auto bg-sky-500/20 rounded-full flex items-center justify-center mb-6 border border-sky-400/30">
-                <i class="fa-solid fa-book-open text-5xl text-sky-400"></i>
-            </div>
-            <h1 class="text-3xl font-bold mb-2 urdu-font text-white">ادھار کھاتا پرو</h1>
-            <p class="text-gray-400 text-sm mb-8">محفوظ، تیز اور کلاؤڈ پر مبنی بزنس لیجر</p>
-            
-            <button onclick="loginWithGoogle()" class="w-full bg-white text-gray-900 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-100 transition shadow-lg text-lg">
-                <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6" alt="Google">
-                Google سے لاگ ان کریں
-            </button>
-        </div>
+<!-- ========== LICENSE SCREEN ========== -->
+<div id="licenseScreen" class="screen-overlay">
+  <div class="card" style="width:100%; max-width:400px; text-align:center; border-color: var(--gold);" id="activationFormBox">
+    <div class="bismillah" style="margin-bottom:20px;">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
+    <h2 style="margin-bottom:10px; color: var(--gold);">🔑 Activation Guard</h2>
+    <p style="color:var(--text-dim); margin-bottom:20px; font-size:13px;">Software activation ke liye valid license key darj karein.</p>
+    <input type="text" id="licenseKeyInput" placeholder="Enter License Key" style="text-align:center; font-weight:bold; border-color: var(--gold); text-transform: uppercase;">
+    <button class="btn btn-warning" onclick="verifyLicense()">Activate System</button>
+    <div style="margin-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 15px;">
+      <p style="font-size:12px; color:#fff;">License kharidne ya details ke liye owner se direct rabta karein:</p>
+      <a href="https://wa.me/923003919555?text=Hi%20Khalid%20Ali%20Pechuha,%20I%20want%20to%20get%20UdharBook%20PRO%20License%20Key." target="_blank" class="whatsapp-redirect-btn">💬 Contact Khalid Ali Pechuha</a>
+    </div>
+  </div>
+  <div class="card" style="width:100%; max-width:400px; text-align:center; border-color: var(--p); display: none;" id="timerLoadingBox">
+    <div class="bismillah" style="margin-bottom:10px;">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
+    <h3 style="color:#fff;">🔄 Authenticating Node...</h3>
+    <p style="color:var(--text-dim); font-size:12px;">Please wait, secure environment build ho raha hai.</p>
+    <div class="loader-container">
+      <div class="timer-watch">⏳</div>
+      <div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div>
+      <div class="countdown-text" id="countdownLabel">Verifying Token: 3.0s</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MAIN APP ========== -->
+<div class="app" id="mainApp" style="display:none;">
+  <div class="header">
+    <div class="bismillah">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
+    <h1>💎 Khalid Ali Pechuha</h1>
+    <p>Cloud Udhar Book System</p>
+    <div class="clock-badge" id="clockTracker">⏳ License Active</div>
+    <div class="sync-status" id="syncStatus">🔄 Loading...</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card"><div class="icon">📤</div><div class="label">Total Udhar</div><div class="value" style="color:#f87171" id="totalDebit">Rs 0</div></div>
+    <div class="stat-card"><div class="icon">📥</div><div class="label">Total Jama</div><div class="value" style="color:#34d399" id="totalCredit">Rs 0</div></div>
+    <div class="stat-card"><div class="icon">⚠️</div><div class="label">Overdue</div><div class="value" style="color:var(--warn)" id="totalOverdue">0</div></div>
+  </div>
+
+  <div class="container">
+    <!-- HOME SCREEN -->
+    <div id="homeScreen">
+      <div class="card"><div class="card-title">🔍 Search Customer</div><input type="text" id="searchInput" placeholder="Naam ya mobile node se search..." oninput="renderCustomers()"></div>
+      <div id="customerList"></div>
     </div>
 
-    <!-- 2. MAIN DASHBOARD (Hidden) -->
-    <div id="dashboard-screen" class="hidden max-w-5xl mx-auto space-y-6 pb-20">
-        
-        <!-- Header Profile -->
-        <div class="glass-panel p-4 flex justify-between items-center sticky top-2 z-50">
-            <div class="flex items-center gap-3">
-                <img id="user-avatar" src="" class="w-10 h-10 rounded-full border border-sky-400 hidden">
-                <div id="user-avatar-placeholder" class="w-10 h-10 rounded-full bg-sky-500 flex items-center justify-center font-bold">K</div>
-                <div>
-                    <h2 class="text-xs text-gray-400">پروپرائٹر</h2>
-                    <h1 class="text-sm sm:text-base font-bold text-sky-400 truncate w-32 sm:w-auto" id="user-name">صارف</h1>
-                </div>
-            </div>
-            <h1 class="text-xl font-bold urdu-font hidden sm:block">ڈومکی موبائل سینٹر</h1>
-            <button onclick="logout()" class="bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 text-red-400 px-4 py-2 rounded-xl text-sm transition flex items-center gap-2">
-                <i class="fa-solid fa-power-off"></i> <span class="hidden sm:inline">لاگ آؤٹ</span>
-            </button>
-        </div>
-
-        <!-- Total Stats Widget -->
-        <div class="glass-panel p-6">
-            <div class="grid grid-cols-2 gap-4 text-center">
-                <div class="border-l border-white/10">
-                    <h3 class="text-gray-400 text-sm mb-1 urdu-font">کل مارکیٹ سے لینا ہے</h3>
-                    <h2 class="text-2xl sm:text-3xl font-bold text-red-400" id="total-market-udhar">Rs 0</h2>
-                </div>
-                <div>
-                    <h3 class="text-gray-400 text-sm mb-1 urdu-font">کل کسٹمرز</h3>
-                    <h2 class="text-2xl sm:text-3xl font-bold text-sky-400" id="total-customers-count">0</h2>
-                </div>
-            </div>
-        </div>
-
-        <!-- Add Customer Area -->
-        <div class="glass-panel p-5 sm:p-6">
-            <h3 class="font-bold mb-4 urdu-font text-lg flex items-center gap-2"><i class="fa-solid fa-user-plus text-sky-400"></i> نیا کسٹمر شامل کریں</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <input type="text" id="cust-name" placeholder="کسٹمر کا نام" class="glass-input p-3 w-full">
-                <input type="tel" id="cust-phone" placeholder="موبائل نمبر" class="glass-input p-3 w-full text-left" dir="ltr">
-                <button onclick="addCustomer()" class="bg-sky-600 hover:bg-sky-500 text-white font-bold p-3 rounded-xl transition shadow-lg shadow-sky-500/20">
-                    محفوظ کریں
-                </button>
-            </div>
-        </div>
-
-        <!-- Customers List -->
-        <div class="glass-panel p-5 sm:p-6">
-            <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-3">
-                <h3 class="font-bold urdu-font text-lg flex items-center gap-2"><i class="fa-solid fa-users text-sky-400"></i> کسٹمرز کی لسٹ</h3>
-                <div class="relative">
-                    <input type="text" id="search-customer" onkeyup="filterCustomers()" placeholder="تلاش کریں..." class="glass-input px-3 py-1 pl-8 text-sm w-32 sm:w-48">
-                    <i class="fa-solid fa-search absolute left-3 top-2 text-gray-400 text-xs"></i>
-                </div>
-            </div>
-            
-            <div class="overflow-x-auto">
-                <table class="w-full text-right text-sm">
-                    <thead>
-                        <tr class="text-gray-400 border-b border-white/5">
-                            <th class="py-3 font-medium">نام</th>
-                            <th class="py-3 font-medium">نمبر</th>
-                            <th class="py-3 font-medium">موجودہ بیلنس</th>
-                            <th class="py-3 font-medium text-center">تفصیلات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="customers-list" class="divide-y divide-white/5">
-                        <!-- Customers will load here -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <!-- ADD TRANSACTION SCREEN -->
+    <div id="addScreen" class="hidden">
+      <div class="card">
+        <div class="card-title">➕ Naya Transaction</div>
+        <input type="text" id="custName" placeholder="Customer Name *" list="customerNames"><datalist id="customerNames"></datalist>
+        <input type="tel" id="custPhone" placeholder="WhatsApp Number">
+        <input type="number" id="amount" placeholder="Amount (Rs) *">
+        <select id="txnType"><option value="debit">📤 Udhar Diya</option><option value="credit">📥 Payment Vasool</option></select>
+        <div class="grid-2"><input type="date" id="txnDate"><input type="date" id="dueDate"></div>
+        <textarea id="note" rows="2" placeholder="Note..."></textarea>
+        <button class="btn" onclick="addTransaction()">💾 Save to Cloud</button>
+      </div>
     </div>
 
-    <!-- 3. CUSTOMER LEDGER DETAIL SCREEN (Hidden) -->
-    <div id="ledger-screen" class="hidden max-w-5xl mx-auto space-y-6 pb-20 mt-4">
-        
-        <!-- Back Header & Info -->
-        <div class="glass-panel p-5 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-2 z-50">
-            <button onclick="closeLedger()" class="bg-gray-700/50 hover:bg-gray-600 px-4 py-2 rounded-xl text-white transition flex items-center gap-2 self-start sm:self-auto w-full sm:w-auto justify-center">
-                <i class="fa-solid fa-arrow-right"></i> واپس ڈیش بورڈ
-            </button>
-            <div class="text-center sm:text-right flex-1">
-                <h2 class="text-xl font-bold text-sky-400" id="ledger-cust-name">کسٹمر کا نام</h2>
-                <p class="text-sm text-gray-400" id="ledger-cust-phone" dir="ltr">0300-0000000</p>
-            </div>
-            <div class="text-center bg-black/20 p-3 rounded-xl border border-white/5 w-full sm:w-auto">
-                <p class="text-xs text-gray-400 mb-1">موجودہ بیلنس</p>
-                <h3 class="text-2xl font-bold" id="ledger-total-balance">Rs 0</h3>
-            </div>
+    <!-- SETTINGS SCREEN (Enhanced with Local Backup) -->
+    <div id="reportScreen" class="hidden">
+      <div class="card"><div class="card-title">🎨 Theme</div>
+        <div style="display:flex; gap:10px;">
+          <div style="width:30px;height:30px;background:#10b981;border-radius:50%;cursor:pointer;" onclick="setTheme('emerald')"></div>
+          <div style="width:30px;height:30px;background:#6366f1;border-radius:50%;cursor:pointer;" onclick="setTheme('default')"></div>
+          <div style="width:30px;height:30px;background:#fbbf24;border-radius:50%;cursor:pointer;" onclick="setTheme('gold')"></div>
         </div>
-
-        <!-- Add New Transaction Entry -->
-        <div class="glass-panel p-5">
-            <h3 class="font-bold mb-4 urdu-font text-lg border-b border-white/10 pb-2">نئی انٹری کریں</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                <input type="number" id="entry-amount" placeholder="رقم (Rs)" class="glass-input p-3 w-full lg:col-span-1">
-                <input type="text" id="entry-detail" placeholder="تفصیل (جیسے: موبائل ریپیئر، یا نقد وصولی)" class="glass-input p-3 w-full lg:col-span-2">
-                <input type="date" id="entry-date" class="glass-input p-3 w-full lg:col-span-1 text-sm text-gray-300">
-                
-                <div class="flex gap-2 lg:col-span-1">
-                    <button onclick="saveTransaction('gave')" class="bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/50 flex-1 rounded-xl font-bold transition text-sm">
-                        دیے <i class="fa-solid fa-arrow-up ml-1"></i>
-                    </button>
-                    <button onclick="saveTransaction('got')" class="bg-green-500/20 hover:bg-green-500 text-green-400 hover:text-white border border-green-500/50 flex-1 rounded-xl font-bold transition text-sm">
-                        لیے <i class="fa-solid fa-arrow-down ml-1"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Transactions History -->
-        <div class="glass-panel p-5">
-            <h3 class="font-bold mb-4 urdu-font text-lg">مکمل کھاتا ہسٹری</h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-right text-sm">
-                    <thead>
-                        <tr class="text-gray-400 border-b border-white/5">
-                            <th class="py-3 font-medium">تاریخ</th>
-                            <th class="py-3 font-medium">تفصیل</th>
-                            <th class="py-3 font-medium text-red-400">دیے (Debit)</th>
-                            <th class="py-3 font-medium text-green-400">لیے (Credit)</th>
-                            <th class="py-3 font-medium text-center">ایکشن</th>
-                        </tr>
-                    </thead>
-                    <tbody id="transactions-list" class="divide-y divide-white/5">
-                        <!-- Transactions -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">💾 Data Backup (No Google Drive Required)</div>
+        <button class="btn btn-secondary" onclick="exportBackupJSON()">📤 Export All Data (JSON)</button>
+        <label for="restoreFileInput" class="btn btn-secondary" style="display:block; text-align:center; cursor:pointer;">📥 Restore from Backup</label>
+        <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="importBackupJSON(this.files[0])">
+        <div style="font-size: 11px; color: var(--text-dim); margin-top: 12px; text-align: center;">✅ Ab Google Drive sign-in ki zaroorat nahi. Backup/restore device ke andar he kaam karta hai, koi redirect issue nahi.</div>
+      </div>
+      <div class="card"><button class="btn btn-danger" onclick="logout()">🚪 Reset & Logout</button></div>
     </div>
+  </div>
 
-    <!-- Footer Banner -->
-    <footer id="app-footer" class="hidden w-full text-center py-6 mt-10">
-        <p class="text-sm text-gray-500 mb-2">&copy; 2026 UdharBook PRO Management System</p>
-        <p class="text-xs text-gray-600 mb-3">Licensed to: Khalid Ali Pechuha</p>
-        <a href="https://wa.me/923003919555?text=Hello%20Khalid%20Ali%20Pechuha,%20I%20want%20to%20discuss%20about%20UdharBook." target="_blank" class="inline-flex items-center gap-2 bg-emerald-600/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-600/20 px-5 py-2 rounded-full text-sm transition">
-            <i class="fa-brands fa-whatsapp text-lg"></i> رابطہ کریں
-        </a>
-    </footer>
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="switchScreen('home')"><div class="icon">🏠</div><div class="label">Home</div></div>
+    <div class="nav-item" onclick="switchScreen('add')"><div class="icon">➕</div><div class="label">Add</div></div>
+    <div class="nav-item" onclick="switchScreen('report')"><div class="icon">📊</div><div class="label">Settings</div></div>
+  </div>
+</div>
 
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<!-- ========== CUSTOMER DETAIL MODAL ========== -->
+<div id="customerModal" class="modal hidden">
+  <div class="modal-content">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h2 id="modalCustName"></h2>
+        <button class="btn btn-danger btn-sm" onclick="closeModal()">✕</button>
+      </div>
+      <div class="stat-card" style="margin-bottom:10px;">
+        <div class="label">Current Balance</div>
+        <div class="value" id="modalBalance"></div>
+        <div id="modalBalanceBadge"></div>
+      </div>
+      <div id="modalPhone" style="text-align:center; color:var(--text-dim); margin-bottom:10px;"></div>
 
-    <script>
-        // ⚠️ فائر بیس کنفیگریشن ⚠️
-        const firebaseConfig = {
-            apiKey: "AIzaSyBinoNV5PHLxWYjIAmezwRg2IahY6AWisU",
-            authDomain: "udharbook-3e2fd.firebaseapp.com",
-            databaseURL: "https://udharbook-3e2fd-default-rtdb.firebaseio.com",
-            projectId: "udharbook-3e2fd",
-            storageBucket: "udharbook-3e2fd.firebasestorage.app",
-            messagingSenderId: "1072696547252",
-            appId: "1:1072696547252:web:d210c6c39bb6db20d904e1"
-        };
+      <div class="quick-pay-section">
+        <div class="qp-title">💱 Hisaab Kitaab - Record Len Den</div>
+        <div class="quick-pay-row">
+          <input type="number" id="modalAmount" placeholder="Amount">
+          <select id="modalTxnType"><option value="credit">📥 Payment Mila</option><option value="debit">📤 Udhar Diya</option></select>
+        </div>
+        <div class="quick-pay-row" style="margin-top:6px;">
+          <input type="date" id="modalTxnDate"><input type="text" id="modalNote" placeholder="Note">
+          <button class="btn btn-warning btn-sm" onclick="addModalTransaction()">💾 Record</button>
+        </div>
+      </div>
 
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.database();
+      <div class="grid-2" style="margin-bottom:10px;">
+        <button class="btn-action btn-whatsapp" onclick="sendWhatsAppReminder()">💬 Send Reminder</button>
+        <button class="btn-action btn-download" onclick="generateReceiptImage('summary')">📸 Download Slip</button>
+      </div>
+      <div style="text-align:center; margin-bottom:10px;">
+        <button class="btn-action" style="background:rgba(99,102,241,0.1); border-color:rgba(99,102,241,0.3);" onclick="generateReceiptImage('full')">📋 Download Full Statement</button>
+      </div>
 
-        let currentUser = null;
-        let currentOpenCustomerId = null; 
+      <div id="receiptSummaryBox" class="bank-receipt-wrapper">...</div>
+      <div id="receiptFullBox" class="bank-receipt-wrapper">...</div>
+      <div class="card-title" style="margin-top:15px;">📋 Transaction History</div>
+      <div id="modalLedger"></div>
+      <button class="btn-delete-pro" id="deleteCustBtn">🗑️ Delete Whole Account</button>
+    </div>
+  </div>
+</div>
 
-        // ================= AUTH LOGIC =================
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                currentUser = user;
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('dashboard-screen').classList.remove('hidden');
-                document.getElementById('app-footer').classList.remove('hidden');
-                
-                document.getElementById('user-name').innerText = user.displayName || "ایڈمن";
-                if(user.photoURL) {
-                    let avatar = document.getElementById('user-avatar');
-                    avatar.src = user.photoURL;
-                    avatar.classList.remove('hidden');
-                    document.getElementById('user-avatar-placeholder').classList.add('hidden');
-                }
-                
-                document.getElementById('entry-date').valueAsDate = new Date();
-                
-                loadAllCustomers();
-            } else {
-                currentUser = null;
-                document.getElementById('dashboard-screen').classList.add('hidden');
-                document.getElementById('ledger-screen').classList.add('hidden');
-                document.getElementById('app-footer').classList.add('hidden');
-                document.getElementById('login-screen').classList.remove('hidden');
-            }
-        });
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBinoNV5PHLxWYjIAmezwRg2IahY6AWisU",
+    authDomain: "udharbook-3e2fd.firebaseapp.com",
+    databaseURL: "https://udharbook-3e2fd-default-rtdb.firebaseio.com",
+    projectId: "udharbook-3e2fd",
+    storageBucket: "udharbook-3e2fd.firebasestorage.app",
+    messagingSenderId: "1072696547252",
+    appId: "1:1072696547252:web:d210c6c39bb6db20d904e1"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const auth = firebase.auth();
 
-        function loginWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithRedirect(provider);
-        }
+  let data = { customers: {}, transactions: [] };
+  let currentCustomer = null;
+  let currentUserId = null;
 
-        function logout() {
-            auth.signOut();
-        }
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedKey = localStorage.getItem('app_license_key');
+    if (savedKey) checkLicenseStatus(savedKey, true);
+    else document.getElementById('licenseScreen').style.display = 'flex';
+    document.getElementById('modalTxnDate').valueAsDate = new Date();
+    document.getElementById('txnDate').valueAsDate = new Date();
+  });
 
-        // ================= DASHBOARD: CUSTOMERS =================
-        function addCustomer() {
-            const name = document.getElementById('cust-name').value.trim();
-            const phone = document.getElementById('cust-phone').value.trim();
+  function verifyLicense() {
+    const key = document.getElementById('licenseKeyInput').value.trim().toUpperCase();
+    if (!key) return alert("License Key darj karein!");
+    db.ref('licenses/' + key).once('value', snap => {
+      const lic = snap.val();
+      if (lic && lic.status === 'active' && lic.expiry_date >= new Date().toISOString().slice(0,10)) {
+        document.getElementById('activationFormBox').style.display = 'none';
+        document.getElementById('timerLoadingBox').style.display = 'block';
+        runTimer(key);
+      } else alert("❌ Invalid/Expired License!");
+    });
+  }
 
-            if(!name) { alert("کسٹمر کا نام لازمی ہے!"); return; }
+  function runTimer(key) {
+    let t = 30;
+    const fill = document.getElementById('progressFill'), lbl = document.getElementById('countdownLabel');
+    const iv = setInterval(() => {
+      t--; lbl.textContent = `Syncing Cloud Engine: ${(t/10).toFixed(1)}s`;
+      fill.style.width = `${((30-t)/30)*100}%`;
+      if (t <= 0) { clearInterval(iv); checkLicenseStatus(key, false); }
+    }, 100);
+  }
 
-            const custId = 'CUST_' + Date.now();
-            const ref = db.ref(`udharbook_data/${currentUser.uid}/customers/${custId}`);
+  function checkLicenseStatus(key, isAuto) {
+    db.ref('licenses/' + key).once('value', snap => {
+      const lic = snap.val();
+      if (lic && lic.status === 'active' && lic.expiry_date >= new Date().toISOString().slice(0,10)) {
+        localStorage.setItem('app_license_key', key);
+        document.getElementById('licenseScreen').style.display = 'none';
+        const exp = new Date(lic.expiry_date);
+        const days = Math.ceil((exp - new Date()) / (1000*60*60*24));
+        document.getElementById('clockTracker').innerHTML = lic.package_type === 'lifetime' ? '⏳ Lifetime ♾️' : `⏳ ${days} Days`;
+        auth.signInAnonymously().then(cred => { currentUserId = cred.user.uid; initCloudSync(); })
+          .catch(error => { alert("Firebase login failed: " + error.message); handleLicenseFailure(); });
+      } else handleLicenseFailure();
+    });
+  }
 
-            ref.set({
-                name: name,
-                phone: phone,
-                createdAt: firebase.database.ServerValue.TIMESTAMP
-            }).then(() => {
-                document.getElementById('cust-name').value = '';
-                document.getElementById('cust-phone').value = '';
-            }).catch((err) => alert("مسئلہ: " + err.message));
-        }
+  function handleLicenseFailure() {
+    localStorage.removeItem('app_license_key');
+    document.getElementById('activationFormBox').style.display = 'block';
+    document.getElementById('timerLoadingBox').style.display = 'none';
+    document.getElementById('licenseScreen').style.display = 'flex';
+  }
 
-        function loadAllCustomers() {
-            const dataRef = db.ref(`udharbook_data/${currentUser.uid}/customers`);
-            
-            dataRef.on('value', async (snapshot) => {
-                const list = document.getElementById('customers-list');
-                list.innerHTML = '';
-                let totalMarketUdhar = 0;
-                let count = 0;
+  function initCloudSync() {
+    setSyncStatus('🔄 Syncing...', 'saving');
+    db.ref('users/' + currentUserId).on('value', (snapshot) => {
+      const val = snapshot.val();
+      if (val && val.customers) data = val;
+      else data = { customers: {}, transactions: [] };
+      renderAll();
+      setSyncStatus('🟢 Cloud Online', 'success');
+    }, (error) => { setSyncStatus('🔴 Sync Offline', 'offline'); });
+    document.getElementById('mainApp').style.display = 'block';
+  }
 
-                if (snapshot.exists()) {
-                    const customersData = snapshot.val();
-                    
-                    for (const id in customersData) {
-                        const cust = customersData[id];
-                        count++;
-                        
-                        let balance = 0;
-                        if(cust.transactions) {
-                            Object.values(cust.transactions).forEach(tx => {
-                                if(tx.type === 'gave') balance += Number(tx.amount);
-                                if(tx.type === 'got') balance -= Number(tx.amount);
-                            });
-                        }
-                        
-                        totalMarketUdhar += balance;
-                        let balanceClass = balance > 0 ? 'text-red-400' : (balance < 0 ? 'text-green-400' : 'text-gray-400');
+  function saveDataToCloud() {
+    if (!currentUserId) return;
+    setSyncStatus('💾 Saving...', 'saving');
+    db.ref('users/' + currentUserId).set(data).then(() => setSyncStatus('🟢 Cloud Online', 'success'))
+      .catch(() => setSyncStatus('🔴 Save Failed', 'offline'));
+  }
 
-                        list.innerHTML += `
-                            <tr class="customer-row border-b border-white/5 hover:bg-white/5 transition group">
-                                <td class="py-4 cust-name-cell">${cust.name}</td>
-                                <td class="py-4 text-gray-400" dir="ltr">${cust.phone || '-'}</td>
-                                <td class="py-4 font-bold ${balanceClass}" dir="ltr">Rs ${balance}</td>
-                                <td class="py-4 text-center">
-                                    <button onclick="openLedger('${id}', '${cust.name}', '${cust.phone}')" class="bg-sky-500/20 text-sky-400 hover:bg-sky-500 hover:text-white px-4 py-2 rounded-xl text-xs transition border border-sky-500/30">
-                                        کھاتا کھولیں <i class="fa-solid fa-folder-open ml-1"></i>
-                                    </button>
-                                    <button onclick="deleteCustomer('${id}')" class="text-gray-600 hover:text-red-500 px-3 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-trash"></i></button>
-                                </td>
-                            </tr>
-                        `;
-                    }
-                } else {
-                    list.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-500">کوئی کسٹمر موجود نہیں</td></tr>`;
-                }
+  function setSyncStatus(text, type) {
+    const el = document.getElementById('syncStatus'); if(!el) return;
+    el.textContent = text; el.className = 'sync-status';
+    if (type === 'offline') el.classList.add('offline');
+    if (type === 'saving') el.classList.add('saving');
+  }
 
-                document.getElementById('total-market-udhar').innerText = `Rs ${totalMarketUdhar}`;
-                document.getElementById('total-customers-count').innerText = count;
-            });
-        }
+  function getBalance(name) { const c = data.customers[name]; if(!c) return 0; return (c.totalDebit||0) - (c.totalCredit||0); }
 
-        function deleteCustomer(custId) {
-            if(confirm("کیا آپ واقعی یہ پورا کھاتا اور اس کی تمام ہسٹری ڈیلیٹ کرنا چاہتے ہیں؟")) {
-                db.ref(`udharbook_data/${currentUser.uid}/customers/${custId}`).remove();
-            }
-        }
+  function addTransaction() {
+    const name = document.getElementById('custName').value.trim();
+    const phone = document.getElementById('custPhone').value.trim();
+    const amount = parseFloat(document.getElementById('amount').value);
+    const type = document.getElementById('txnType').value;
+    const date = document.getElementById('txnDate').value;
+    const dueDate = document.getElementById('dueDate').value;
+    const note = document.getElementById('note').value.trim();
+    if(!name || !amount || amount<=0) return alert('⚠️ Form fill karein');
+    if(!data.customers[name]) data.customers[name] = { totalDebit:0, totalCredit:0, phone:'', dueDate:'' };
+    if(phone) data.customers[name].phone = phone;
+    if(dueDate) data.customers[name].dueDate = dueDate;
+    data.transactions.unshift({ id: Date.now(), name, amount, type, date, note });
+    if(type === 'debit') data.customers[name].totalDebit += amount;
+    else data.customers[name].totalCredit += amount;
+    saveDataToCloud();
+    document.getElementById('custName').value = ''; document.getElementById('amount').value = ''; document.getElementById('note').value = '';
+    switchScreen('home');
+  }
 
-        function filterCustomers() {
-            let input = document.getElementById('search-customer').value.toLowerCase();
-            let rows = document.getElementsByClassName('customer-row');
-            
-            for (let i = 0; i < rows.length; i++) {
-                let name = rows[i].getElementsByClassName('cust-name-cell')[0].innerText.toLowerCase();
-                if (name.includes(input)) {
-                    rows[i].style.display = "";
-                } else {
-                    rows[i].style.display = "none";
-                }
-            }
-        }
+  function addModalTransaction() {
+    if(!currentCustomer) return;
+    const amount = parseFloat(document.getElementById('modalAmount').value);
+    const type = document.getElementById('modalTxnType').value;
+    const date = document.getElementById('modalTxnDate').value;
+    const note = document.getElementById('modalNote').value.trim();
+    if(!amount || amount<=0 || !date) return alert('Valid amount and date required');
+    if(!data.customers[currentCustomer]) data.customers[currentCustomer] = { totalDebit:0, totalCredit:0, phone:'' };
+    data.transactions.unshift({ id: Date.now(), name: currentCustomer, amount, type, date, note: note || 'Modal entry' });
+    if(type === 'debit') data.customers[currentCustomer].totalDebit += amount;
+    else data.customers[currentCustomer].totalCredit += amount;
+    saveDataToCloud();
+    document.getElementById('modalAmount').value = ''; document.getElementById('modalNote').value = '';
+    document.getElementById('modalTxnDate').valueAsDate = new Date();
+  }
 
-        // ================= LEDGER DETAILS: TRANSACTIONS =================
-        function openLedger(custId, name, phone) {
-            currentOpenCustomerId = custId;
-            document.getElementById('dashboard-screen').classList.add('hidden');
-            document.getElementById('ledger-screen').classList.remove('hidden');
-            
-            document.getElementById('ledger-cust-name').innerText = name;
-            document.getElementById('ledger-cust-phone').innerText = phone || 'نمبر موجود نہیں';
-            
-            loadTransactions(custId);
-        }
+  function deleteCustomer(name) {
+    if(confirm(`Delete ${name}?`)){
+      delete data.customers[name];
+      data.transactions = data.transactions.filter(t => t.name !== name);
+      saveDataToCloud();
+      closeModal();
+    }
+  }
 
-        function closeLedger() {
-            currentOpenCustomerId = null;
-            document.getElementById('ledger-screen').classList.add('hidden');
-            document.getElementById('dashboard-screen').classList.remove('hidden');
-        }
+  function renderStats() {
+    let totalD=0,totalC=0,overdue=0, today = new Date().toISOString().slice(0,10);
+    Object.keys(data.customers).forEach(name => {
+      totalD += data.customers[name].totalDebit||0;
+      totalC += data.customers[name].totalCredit||0;
+      if(data.customers[name].dueDate && data.customers[name].dueDate < today && getBalance(name)>0) overdue++;
+    });
+    document.getElementById('totalDebit').textContent = `Rs ${totalD.toLocaleString()}`;
+    document.getElementById('totalCredit').textContent = `Rs ${totalC.toLocaleString()}`;
+    document.getElementById('totalOverdue').textContent = overdue;
+  }
 
-        function saveTransaction(type) {
-            if(!currentOpenCustomerId) return;
-            
-            const amount = document.getElementById('entry-amount').value;
-            const detail = document.getElementById('entry-detail').value || '-';
-            let date = document.getElementById('entry-date').value;
+  function renderCustomers() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const list = document.getElementById('customerList'); list.innerHTML = '';
+    const names = Object.keys(data.customers).filter(n => n.toLowerCase().includes(search));
+    if(names.length===0){ list.innerHTML='<div class="card" style="text-align:center;">No customers</div>'; return; }
+    names.forEach(name => {
+      const bal = getBalance(name);
+      const div = document.createElement('div'); div.className='customer-card';
+      div.innerHTML = `<div class="customer-header"><div><div class="customer-name">${name}</div><div class="customer-phone">${data.customers[name].phone || 'No phone'}</div></div><div class="balance ${bal>=0?'debit':'credit'}">Rs ${Math.abs(bal).toLocaleString()}</div></div><button class="btn btn-secondary btn-sm" onclick="openCustomer('${name}')">👁️ View Statement</button>`;
+      list.appendChild(div);
+    });
+    const dl = document.getElementById('customerNames'); if(dl) dl.innerHTML = Object.keys(data.customers).map(n => `<option value="${n}">`).join('');
+  }
 
-            if(!amount || amount <= 0) { alert("رقم درج کریں!"); return; }
-            if(!date) date = new Date().toISOString().split('T')[0];
+  function openCustomer(name){
+    currentCustomer=name;
+    document.getElementById('customerModal').classList.remove('hidden');
+    document.getElementById('modalCustName').textContent=name;
+    const bal=getBalance(name);
+    document.getElementById('modalBalance').textContent=`Rs ${Math.abs(bal).toLocaleString()}`;
+    const badge=document.getElementById('modalBalanceBadge');
+    if(bal>0) badge.innerHTML='<span class="balance-indicator owing">⚠️ UDHAR BAAQI</span>';
+    else if(bal<0) badge.innerHTML='<span class="balance-indicator advance">✅ ADVANCE JAMA</span>';
+    else badge.innerHTML='<span class="balance-indicator settled">✔️ HISAB CLEAR</span>';
+    document.getElementById('modalPhone').textContent=data.customers[name]?.phone?`📱 ${data.customers[name].phone}`:'📱 No phone';
+    document.getElementById('rCustName').textContent=name;
+    document.getElementById('rPhone').textContent=data.customers[name]?.phone||'N/A';
+    document.getElementById('rBalance').textContent=`Rs ${Math.abs(bal).toLocaleString()}/-`;
+    document.getElementById('rAmountWords').textContent=`Rupees ${numberToWords(Math.abs(bal))}`;
+    document.getElementById('rStatus').textContent=bal>0?'Payable':bal<0?'Advance':'Settled';
+    document.getElementById('rDate').textContent=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    const txns=data.transactions.filter(t=>t.name===name);
+    document.getElementById('rTxnCount').textContent=txns.length;
+    document.getElementById('rRefNo').textContent=`REF: UBP-${Date.now().toString().slice(-8)}`;
+    document.getElementById('fsCustName').textContent=name;
+    const dates=txns.map(t=>t.date).sort();
+    document.getElementById('fsPeriod').textContent=dates.length?`${dates[0]} - ${dates[dates.length-1]}`:'N/A';
+    document.getElementById('fsBalance').textContent=`Rs ${Math.abs(bal).toLocaleString()}/-`;
+    const tbody=document.querySelector('#fsTable tbody'); if(tbody) tbody.innerHTML='';
+    let running=0;
+    [...txns].reverse().forEach(t=>{
+      running+=(t.type==='debit'?t.amount:-t.amount);
+      const row=tbody.insertRow();
+      row.innerHTML=`<td>${t.date}</td><td>${t.note||'-'}</td><td class="txn-debit">${t.type==='debit'?'Rs '+t.amount.toLocaleString():''}</td><td class="txn-credit">${t.type==='credit'?'Rs '+t.amount.toLocaleString():''}</td><td style="font-weight:600;">Rs ${Math.abs(running).toLocaleString()} ${running>=0?'(Dr)':'(Cr)'}</td>`;
+    });
+    document.getElementById('fsFooterBalance').textContent=`Rs ${Math.abs(bal).toLocaleString()}/-`;
+    document.getElementById('modalLedger').innerHTML=txns.length?txns.map(t=>`<div class="ledger-item"><div><div class="ledger-date">${t.date}</div><div>${t.note||'-'}</div></div><div class="ledger-type type-${t.type}">${t.type==='debit'?'📤':'📥'} Rs ${t.amount.toLocaleString()}</div></div>`).join(''):'<div style="text-align:center; padding:20px;">No transactions</div>';
+    document.getElementById('deleteCustBtn').onclick=()=>deleteCustomer(name);
+  }
+  function closeModal(){ document.getElementById('customerModal').classList.add('hidden'); document.getElementById('receiptSummaryBox').style.display='none'; document.getElementById('receiptFullBox').style.display='none'; currentCustomer=null; }
+  function numberToWords(num){ if(num===0) return 'Zero'; const ones=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen']; const tens=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety']; const scales=['','Thousand','Million','Billion']; function convertHundred(n){ let s=''; if(n>=100){ s+=ones[Math.floor(n/100)]+' Hundred '; n%=100; } if(n>=20){ s+=tens[Math.floor(n/10)]+' '; n%=10; } if(n>0) s+=ones[n]+' '; return s.trim(); } let n=Math.abs(Math.round(num)), words='', i=0; while(n>0){ if(n%1000!==0) words=convertHundred(n%1000)+' '+scales[i]+' '+words; n=Math.floor(n/1000); i++; } return words.trim()+' Only'; }
+  function sendWhatsAppReminder(){ if(!currentCustomer) return; const phone=data.customers[currentCustomer]?.phone; if(!phone) return alert("WhatsApp number saved nahi hai!"); const bal=getBalance(currentCustomer); const msg=`Assalam-o-Alaikum, Aapke account ka kul baqi balance Rs ${Math.abs(bal).toLocaleString()} hai. Jald az jald tasdeeq karein.`; window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,'_blank'); }
+  async function generateReceiptImage(type){ const boxId=type==='summary'?'receiptSummaryBox':'receiptFullBox'; const box=document.getElementById(boxId); box.style.display='block'; await new Promise(r=>setTimeout(r,100)); html2canvas(box,{backgroundColor:'#ffffff',scale:3}).then(canvas=>{ const link=document.createElement('a'); link.download=`${currentCustomer}_${type==='summary'?'Slip':'FullStatement'}.png`; link.href=canvas.toDataURL(); link.click(); box.style.display='none'; }).catch(()=>{box.style.display='none';}); }
+  function renderAll(){ renderStats(); renderCustomers(); }
+  function switchScreen(s){ document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active')); if(event?.currentTarget) event.currentTarget.classList.add('active'); ['home','add','report'].forEach(id=>document.getElementById(id+'Screen').classList.add('hidden')); document.getElementById(s+'Screen').classList.remove('hidden'); }
+  function setTheme(t){ if(t==='emerald') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme',t); }
+  function logout(){ if(confirm('App data reset karein?')){ auth.signOut(); localStorage.removeItem('app_license_key'); location.reload(); } }
+  
+  // ########### DIRECT BACKUP / RESTORE (NO GOOGLE DRIVE) ###########
+  function exportBackupJSON(){
+    const exportData = JSON.stringify({ customers: data.customers, transactions: data.transactions, exportDate: new Date().toISOString() }, null, 2);
+    const blob = new Blob([exportData], {type: 'application/json'});
+    const a = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    a.href = url;
+    a.download = `UdharBook_Backup_${new Date().toISOString().slice(0,19)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    alert("✅ Data export complete! File saved locally.");
+  }
 
-            const txId = 'TX_' + Date.now();
-            const txRef = db.ref(`udharbook_data/${currentUser.uid}/customers/${currentOpenCustomerId}/transactions/${txId}`);
-
-            txRef.set({
-                amount: Number(amount),
-                detail: detail,
-                date: date,
-                type: type, // 'gave' or 'got'
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            }).then(() => {
-                document.getElementById('entry-amount').value = '';
-                document.getElementById('entry-detail').value = '';
-            });
-        }
-
-        function loadTransactions(custId) {
-            const txRef = db.ref(`udharbook_data/${currentUser.uid}/customers/${custId}/transactions`);
-            
-            txRef.on('value', (snapshot) => {
-                const list = document.getElementById('transactions-list');
-                list.innerHTML = '';
-                let totalBalance = 0;
-
-                if (snapshot.exists()) {
-                    let txArray = [];
-                    snapshot.forEach(child => {
-                        txArray.push({ id: child.key, ...child.val() });
-                    });
-                    txArray.sort((a, b) => b.timestamp - a.timestamp);
-
-                    txArray.forEach(tx => {
-                        let isGave = tx.type === 'gave';
-                        let isGot = tx.type === 'got';
-                        
-                        if(isGave) totalBalance += tx.amount;
-                        if(isGot) totalBalance -= tx.amount;
-
-                        list.innerHTML += `
-                            <tr class="border-b border-white/5 hover:bg-white/5 transition group">
-                                <td class="py-3 text-gray-400 text-xs">${formatDate(tx.date)}</td>
-                                <td class="py-3 text-gray-200">${tx.detail}</td>
-                                <td class="py-3 font-bold text-red-400">${isGave ? tx.amount : '-'}</td>
-                                <td class="py-3 font-bold text-green-400">${isGot ? tx.amount : '-'}</td>
-                                <td class="py-3 text-center">
-                                    <button onclick="deleteTransaction('${tx.id}')" class="text-gray-600 hover:text-red-500 transition"><i class="fa-solid fa-trash"></i></button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                } else {
-                    list.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-gray-500">اس کھاتے میں کوئی لین دین نہیں ہوا</td></tr>`;
-                }
-
-                let headerBal = document.getElementById('ledger-total-balance');
-                headerBal.innerText = `Rs ${totalBalance}`;
-                if(totalBalance > 0) { headerBal.className = 'text-2xl font-bold text-red-400'; }
-                else if(totalBalance < 0) { headerBal.className = 'text-2xl font-bold text-green-400'; }
-                else { headerBal.className = 'text-2xl font-bold text-white'; }
-            });
-        }
-
-        function deleteTransaction(txId) {
-            if(confirm("کیا آپ یہ انٹری حذف کرنا چاہتے ہیں؟")) {
-                db.ref(`udharbook_data/${currentUser.uid}/customers/${currentOpenCustomerId}/transactions/${txId}`).remove();
-            }
-        }
-
-        function formatDate(dateString) {
-            if(!dateString) return '';
-            const options = { year: 'numeric', month: 'short', day: 'numeric' };
-            return new Date(dateString).toLocaleDateString('ur-PK', options);
-        }
-    </script>
+  function importBackupJSON(file){
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+      try{
+        const imported = JSON.parse(e.target.result);
+        if(imported.customers && imported.transactions){
+          if(confirm("Restore se current data replace ho jayega? Pichli info delete ho sakti hai. Confirm karein?")){
+            data.customers = imported.customers;
+            data.transactions = imported.transactions;
+            saveDataToCloud();
+            renderAll();
+            alert("✅ Backup successfully restored! Cloud sync ho gaya.");
+          }
+        } else alert("❌ Invalid backup file format.");
+      }catch(err){ alert("Error parsing file."); }
+    };
+    reader.readAsText(file);
+  }
+  // Set up receipt dynamic containers safely
+  const sumDiv = document.getElementById('receiptSummaryBox'); if(sumDiv && sumDiv.innerHTML === '...') sumDiv.innerHTML = `<div class="bank-receipt-watermark">SUMMARY</div><div class="bank-receipt-header"><div class="bank-logo-area"><div class="bank-icon">UB</div><div class="bank-name">UdharBook PRO<small>Digital Ledger</small></div></div><div class="receipt-badge">SUMMARY SLIP</div></div><div class="bank-receipt-body"><div class="receipt-title">📋 Account Summary</div><div class="bank-row"><span class="bank-label">Account Holder</span><span class="bank-value" id="rCustName">-</span></div><div class="bank-row"><span class="bank-label">Contact</span><span class="bank-value" id="rPhone">-</span></div><div class="bank-row highlight"><span class="bank-label">Net Outstanding</span><span class="bank-value" id="rBalance">Rs 0</span></div><div class="bank-amount-words" id="rAmountWords">Rupees Zero Only</div><div class="bank-row"><span class="bank-label">Status</span><span class="bank-value" id="rStatus">-</span></div><div class="bank-row"><span class="bank-label">Statement Date</span><span class="bank-value" id="rDate">-</span></div><div class="bank-row"><span class="bank-label">Total Transactions</span><span class="bank-value" id="rTxnCount">0</span></div></div><div class="bank-barcode-strip"></div><div class="bank-ref-no" id="rRefNo">REF: UBP-00000000</div><div class="bank-receipt-footer"><span>Generated via UdharBook PRO</span><span class="footer-stamp">✅ VERIFIED</span></div>`;
+  const fullDiv = document.getElementById('receiptFullBox'); if(fullDiv && fullDiv.innerHTML === '...') fullDiv.innerHTML = `<div class="bank-receipt-watermark">STATEMENT</div><div class="bank-receipt-header"><div class="bank-logo-area"><div class="bank-icon">UB</div><div class="bank-name">UdharBook PRO<small>Digital Ledger</small></div></div><div class="receipt-badge">FULL STATEMENT</div></div><div class="bank-receipt-body"><div class="receipt-title">📋 Complete Transaction Statement</div><div class="bank-row"><span class="bank-label">Customer</span><span class="bank-value" id="fsCustName">-</span></div><div class="bank-row"><span class="bank-label">Period</span><span class="bank-value" id="fsPeriod">-</span></div><div class="bank-row highlight"><span class="bank-label">Closing Balance</span><span class="bank-value" id="fsBalance">Rs 0</span></div><table class="statement-table" id="fsTable"><thead><tr><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead><tbody></tbody><tfoot><tr class="statement-footer-row"><td colspan="4">Closing Balance</td><td id="fsFooterBalance">Rs 0</td></tr></tfoot></table></div><div class="bank-barcode-strip"></div><div class="bank-ref-no">REF: FSUBP-00000000</div><div class="bank-receipt-footer"><span>Generated via UdharBook PRO</span><span class="footer-stamp">✅ VERIFIED</span></div>`;
+</script>
 </body>
 </html>

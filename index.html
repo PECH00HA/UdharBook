@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Khalid Ali Pechuha - UdharBook PRO</title>
-<!-- Firebase App + Database + Auth -->
+<!-- Firebase App + Database + Auth + Google Provider -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -20,8 +20,13 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, var(--bg) 0%, #021710 100%); color: var(--text); min-height: 100vh; padding-bottom: 90px; transition: all 0.4s ease; overflow-x: hidden; }
 
-  /* ==================== Overlay for License Screen ==================== */
+  /* ==================== Overlay for License & SignIn ==================== */
   .screen-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, var(--bg) 0%, #021710 100%); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+  .signin-card { width:100%; max-width:400px; text-align:center; }
+  .google-btn { background: #fff; color: #444; border: none; border-radius: 40px; padding: 12px 20px; font-size: 16px; font-weight: 600; display: inline-flex; align-items: center; gap: 12px; cursor: pointer; margin-top: 20px; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+  .google-btn img { width: 24px; height: 24px; }
+  .google-btn:active { transform: scale(0.96); }
+  .user-info { background: rgba(255,255,255,0.1); border-radius: 40px; padding: 8px 16px; margin-top: 16px; display: inline-flex; align-items: center; gap: 10px; font-size: 13px; }
 
   /* ==================== Main App ==================== */
   .app { max-width: 480px; margin: 0 auto; position: relative; }
@@ -98,7 +103,7 @@
   .btn-download { border-color: rgba(99,102,241,0.3); color: #c7d2fe; background: rgba(99,102,241,0.08); }
   .btn-delete-pro { background: rgba(239,68,68,0.05); border: 1px dashed rgba(239,68,68,0.4); color: #f87171; width: 100%; padding: 14px; border-radius: 14px; font-weight: 600; font-size: 13px; margin-top: 20px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-  /* ==================== Bank Receipt (Summary & Full) ==================== */
+  /* ==================== Bank Receipt ==================== */
   .bank-receipt-wrapper { background: #ffffff; border-radius: 4px; padding: 0; margin: 16px 0; font-family: 'Inter', sans-serif; color: #1a1a1a; box-shadow: 0 2px 12px rgba(0,0,0,0.15); border: 1px solid #d1d5db; position: relative; overflow: hidden; display: none; max-width: 400px; margin-left: auto; margin-right: auto; }
   .bank-receipt-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-25deg); font-size: 60px; font-weight: 800; color: rgba(0,0,0,0.025); white-space: nowrap; pointer-events: none; letter-spacing: 4px; z-index: 0; }
   .bank-receipt-header { background: #0d4f3c; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 1; }
@@ -169,12 +174,25 @@
   </div>
 </div>
 
+<!-- ========== GOOGLE SIGN IN SCREEN (after license) ========== -->
+<div id="signinScreen" class="screen-overlay" style="display: none;">
+  <div class="card signin-card">
+    <div class="bismillah" style="margin-bottom:20px;">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
+    <h2 style="margin-bottom:10px; color: var(--gold);">🔐 Sign in with Google</h2>
+    <p style="color:var(--text-dim); margin-bottom:20px;">Apna Google account use karein. Data cloud me safe rahega aur har device par same account se aayega.</p>
+    <button id="googleSignInBtn" class="google-btn">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"> Sign in with Google
+    </button>
+    <div id="signinUserInfo" class="user-info" style="display: none;"></div>
+  </div>
+</div>
+
 <!-- ========== MAIN APP ========== -->
 <div class="app" id="mainApp" style="display:none;">
   <div class="header">
     <div class="bismillah">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
     <h1>💎 Khalid Ali Pechuha</h1>
-    <p>Cloud Udhar Book System</p>
+    <p>Cloud Udhar Book System | <span id="headerUserEmail"></span></p>
     <div class="clock-badge" id="clockTracker">⏳ License Active</div>
     <div class="sync-status" id="syncStatus">🔄 Loading...</div>
   </div>
@@ -186,13 +204,11 @@
   </div>
 
   <div class="container">
-    <!-- HOME SCREEN -->
     <div id="homeScreen">
       <div class="card"><div class="card-title">🔍 Search Customer</div><input type="text" id="searchInput" placeholder="Naam ya mobile node se search..." oninput="renderCustomers()"></div>
       <div id="customerList"></div>
     </div>
 
-    <!-- ADD TRANSACTION SCREEN -->
     <div id="addScreen" class="hidden">
       <div class="card">
         <div class="card-title">➕ Naya Transaction</div>
@@ -206,7 +222,6 @@
       </div>
     </div>
 
-    <!-- SETTINGS SCREEN (Enhanced with Local Backup) -->
     <div id="reportScreen" class="hidden">
       <div class="card"><div class="card-title">🎨 Theme</div>
         <div style="display:flex; gap:10px;">
@@ -216,13 +231,13 @@
         </div>
       </div>
       <div class="card">
-        <div class="card-title">💾 Data Backup (No Google Drive Required)</div>
+        <div class="card-title">💾 Data Backup (Local)</div>
         <button class="btn btn-secondary" onclick="exportBackupJSON()">📤 Export All Data (JSON)</button>
         <label for="restoreFileInput" class="btn btn-secondary" style="display:block; text-align:center; cursor:pointer;">📥 Restore from Backup</label>
         <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="importBackupJSON(this.files[0])">
-        <div style="font-size: 11px; color: var(--text-dim); margin-top: 12px; text-align: center;">✅ Ab Google Drive sign-in ki zaroorat nahi. Backup/restore device ke andar he kaam karta hai, koi redirect issue nahi.</div>
+        <div style="font-size: 11px; color: var(--text-dim); margin-top: 12px; text-align: center;">🔐 Data Google account se linked hai. Backup aapki device par save hota hai.</div>
       </div>
-      <div class="card"><button class="btn btn-danger" onclick="logout()">🚪 Reset & Logout</button></div>
+      <div class="card"><button class="btn btn-danger" onclick="logout()">🚪 Sign Out & Reset</button></div>
     </div>
   </div>
 
@@ -233,7 +248,7 @@
   </div>
 </div>
 
-<!-- ========== CUSTOMER DETAIL MODAL ========== -->
+<!-- ========== CUSTOMER MODAL (same as before) ========== -->
 <div id="customerModal" class="modal hidden">
   <div class="modal-content">
     <div class="card">
@@ -241,35 +256,17 @@
         <h2 id="modalCustName"></h2>
         <button class="btn btn-danger btn-sm" onclick="closeModal()">✕</button>
       </div>
-      <div class="stat-card" style="margin-bottom:10px;">
-        <div class="label">Current Balance</div>
-        <div class="value" id="modalBalance"></div>
-        <div id="modalBalanceBadge"></div>
-      </div>
+      <div class="stat-card" style="margin-bottom:10px;"><div class="label">Current Balance</div><div class="value" id="modalBalance"></div><div id="modalBalanceBadge"></div></div>
       <div id="modalPhone" style="text-align:center; color:var(--text-dim); margin-bottom:10px;"></div>
-
       <div class="quick-pay-section">
         <div class="qp-title">💱 Hisaab Kitaab - Record Len Den</div>
-        <div class="quick-pay-row">
-          <input type="number" id="modalAmount" placeholder="Amount">
-          <select id="modalTxnType"><option value="credit">📥 Payment Mila</option><option value="debit">📤 Udhar Diya</option></select>
-        </div>
-        <div class="quick-pay-row" style="margin-top:6px;">
-          <input type="date" id="modalTxnDate"><input type="text" id="modalNote" placeholder="Note">
-          <button class="btn btn-warning btn-sm" onclick="addModalTransaction()">💾 Record</button>
-        </div>
+        <div class="quick-pay-row"><input type="number" id="modalAmount" placeholder="Amount"><select id="modalTxnType"><option value="credit">📥 Payment Mila</option><option value="debit">📤 Udhar Diya</option></select></div>
+        <div class="quick-pay-row" style="margin-top:6px;"><input type="date" id="modalTxnDate"><input type="text" id="modalNote" placeholder="Note"><button class="btn btn-warning btn-sm" onclick="addModalTransaction()">💾 Record</button></div>
       </div>
-
-      <div class="grid-2" style="margin-bottom:10px;">
-        <button class="btn-action btn-whatsapp" onclick="sendWhatsAppReminder()">💬 Send Reminder</button>
-        <button class="btn-action btn-download" onclick="generateReceiptImage('summary')">📸 Download Slip</button>
-      </div>
-      <div style="text-align:center; margin-bottom:10px;">
-        <button class="btn-action" style="background:rgba(99,102,241,0.1); border-color:rgba(99,102,241,0.3);" onclick="generateReceiptImage('full')">📋 Download Full Statement</button>
-      </div>
-
-      <div id="receiptSummaryBox" class="bank-receipt-wrapper">...</div>
-      <div id="receiptFullBox" class="bank-receipt-wrapper">...</div>
+      <div class="grid-2" style="margin-bottom:10px;"><button class="btn-action btn-whatsapp" onclick="sendWhatsAppReminder()">💬 Send Reminder</button><button class="btn-action btn-download" onclick="generateReceiptImage('summary')">📸 Download Slip</button></div>
+      <div style="text-align:center; margin-bottom:10px;"><button class="btn-action" style="background:rgba(99,102,241,0.1); border-color:rgba(99,102,241,0.3);" onclick="generateReceiptImage('full')">📋 Download Full Statement</button></div>
+      <div id="receiptSummaryBox" class="bank-receipt-wrapper"></div>
+      <div id="receiptFullBox" class="bank-receipt-wrapper"></div>
       <div class="card-title" style="margin-top:15px;">📋 Transaction History</div>
       <div id="modalLedger"></div>
       <button class="btn-delete-pro" id="deleteCustBtn">🗑️ Delete Whole Account</button>
@@ -278,6 +275,7 @@
 </div>
 
 <script>
+  // Firebase Config
   const firebaseConfig = {
     apiKey: "AIzaSyBinoNV5PHLxWYjIAmezwRg2IahY6AWisU",
     authDomain: "udharbook-3e2fd.firebaseapp.com",
@@ -290,19 +288,43 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   const auth = firebase.auth();
+  const provider = new firebase.auth.GoogleAuthProvider();
 
   let data = { customers: {}, transactions: [] };
   let currentCustomer = null;
   let currentUserId = null;
+  let licenseKeyValidated = false;
+
+  // DOM elements
+  const licenseScreen = document.getElementById('licenseScreen');
+  const signinScreen = document.getElementById('signinScreen');
+  const mainApp = document.getElementById('mainApp');
 
   window.addEventListener('DOMContentLoaded', () => {
     const savedKey = localStorage.getItem('app_license_key');
     if (savedKey) checkLicenseStatus(savedKey, true);
-    else document.getElementById('licenseScreen').style.display = 'flex';
+    else licenseScreen.style.display = 'flex';
     document.getElementById('modalTxnDate').valueAsDate = new Date();
     document.getElementById('txnDate').valueAsDate = new Date();
+    setupReceiptHTML();
+
+    // Listen for auth state changes (persistent login)
+    auth.onAuthStateChanged(async (user) => {
+      if (user && licenseKeyValidated) {
+        // User already signed in, proceed
+        currentUserId = user.uid;
+        document.getElementById('headerUserEmail').innerHTML = user.email ? user.email : user.displayName;
+        initCloudSync();
+        signinScreen.style.display = 'none';
+        mainApp.style.display = 'block';
+      } else if (user && !licenseKeyValidated) {
+        // License not yet validated, wait
+        auth.signOut(); // Force sign out until license is done
+      }
+    });
   });
 
+  // ==================== LICENSE LOGIC ====================
   function verifyLicense() {
     const key = document.getElementById('licenseKeyInput').value.trim().toUpperCase();
     if (!key) return alert("License Key darj karein!");
@@ -331,12 +353,13 @@
       const lic = snap.val();
       if (lic && lic.status === 'active' && lic.expiry_date >= new Date().toISOString().slice(0,10)) {
         localStorage.setItem('app_license_key', key);
-        document.getElementById('licenseScreen').style.display = 'none';
         const exp = new Date(lic.expiry_date);
         const days = Math.ceil((exp - new Date()) / (1000*60*60*24));
         document.getElementById('clockTracker').innerHTML = lic.package_type === 'lifetime' ? '⏳ Lifetime ♾️' : `⏳ ${days} Days`;
-        auth.signInAnonymously().then(cred => { currentUserId = cred.user.uid; initCloudSync(); })
-          .catch(error => { alert("Firebase login failed: " + error.message); handleLicenseFailure(); });
+        licenseKeyValidated = true;
+        // Now show Google Sign-In screen
+        licenseScreen.style.display = 'none';
+        setupGoogleSignIn();
       } else handleLicenseFailure();
     });
   }
@@ -345,25 +368,49 @@
     localStorage.removeItem('app_license_key');
     document.getElementById('activationFormBox').style.display = 'block';
     document.getElementById('timerLoadingBox').style.display = 'none';
-    document.getElementById('licenseScreen').style.display = 'flex';
+    licenseScreen.style.display = 'flex';
+    licenseKeyValidated = false;
   }
 
+  // ==================== GOOGLE SIGN IN ====================
+  function setupGoogleSignIn() {
+    signinScreen.style.display = 'flex';
+    const googleBtn = document.getElementById('googleSignInBtn');
+    googleBtn.onclick = async () => {
+      try {
+        const result = await auth.signInWithPopup(provider);
+        currentUserId = result.user.uid;
+        document.getElementById('headerUserEmail').innerHTML = result.user.email;
+        initCloudSync();
+        signinScreen.style.display = 'none';
+        mainApp.style.display = 'block';
+      } catch (error) {
+        console.error(error);
+        alert("Sign in failed: " + error.message);
+      }
+    };
+  }
+
+  // ==================== FIREBASE DATABASE SYNC (per user) ====================
   function initCloudSync() {
     setSyncStatus('🔄 Syncing...', 'saving');
-    db.ref('users/' + currentUserId).on('value', (snapshot) => {
+    const userDataRef = db.ref('users/' + currentUserId);
+    userDataRef.on('value', (snapshot) => {
       const val = snapshot.val();
       if (val && val.customers) data = val;
       else data = { customers: {}, transactions: [] };
       renderAll();
       setSyncStatus('🟢 Cloud Online', 'success');
-    }, (error) => { setSyncStatus('🔴 Sync Offline', 'offline'); });
-    document.getElementById('mainApp').style.display = 'block';
+    }, (error) => {
+      setSyncStatus('🔴 Sync Offline', 'offline');
+    });
   }
 
   function saveDataToCloud() {
     if (!currentUserId) return;
     setSyncStatus('💾 Saving...', 'saving');
-    db.ref('users/' + currentUserId).set(data).then(() => setSyncStatus('🟢 Cloud Online', 'success'))
+    db.ref('users/' + currentUserId).set(data)
+      .then(() => setSyncStatus('🟢 Cloud Online', 'success'))
       .catch(() => setSyncStatus('🔴 Save Failed', 'offline'));
   }
 
@@ -374,8 +421,8 @@
     if (type === 'saving') el.classList.add('saving');
   }
 
+  // ==================== DATA OPERATIONS (unchanged) ====================
   function getBalance(name) { const c = data.customers[name]; if(!c) return 0; return (c.totalDebit||0) - (c.totalCredit||0); }
-
   function addTransaction() {
     const name = document.getElementById('custName').value.trim();
     const phone = document.getElementById('custPhone').value.trim();
@@ -395,7 +442,6 @@
     document.getElementById('custName').value = ''; document.getElementById('amount').value = ''; document.getElementById('note').value = '';
     switchScreen('home');
   }
-
   function addModalTransaction() {
     if(!currentCustomer) return;
     const amount = parseFloat(document.getElementById('modalAmount').value);
@@ -411,77 +457,10 @@
     document.getElementById('modalAmount').value = ''; document.getElementById('modalNote').value = '';
     document.getElementById('modalTxnDate').valueAsDate = new Date();
   }
-
-  function deleteCustomer(name) {
-    if(confirm(`Delete ${name}?`)){
-      delete data.customers[name];
-      data.transactions = data.transactions.filter(t => t.name !== name);
-      saveDataToCloud();
-      closeModal();
-    }
-  }
-
-  function renderStats() {
-    let totalD=0,totalC=0,overdue=0, today = new Date().toISOString().slice(0,10);
-    Object.keys(data.customers).forEach(name => {
-      totalD += data.customers[name].totalDebit||0;
-      totalC += data.customers[name].totalCredit||0;
-      if(data.customers[name].dueDate && data.customers[name].dueDate < today && getBalance(name)>0) overdue++;
-    });
-    document.getElementById('totalDebit').textContent = `Rs ${totalD.toLocaleString()}`;
-    document.getElementById('totalCredit').textContent = `Rs ${totalC.toLocaleString()}`;
-    document.getElementById('totalOverdue').textContent = overdue;
-  }
-
-  function renderCustomers() {
-    const search = document.getElementById('searchInput').value.toLowerCase();
-    const list = document.getElementById('customerList'); list.innerHTML = '';
-    const names = Object.keys(data.customers).filter(n => n.toLowerCase().includes(search));
-    if(names.length===0){ list.innerHTML='<div class="card" style="text-align:center;">No customers</div>'; return; }
-    names.forEach(name => {
-      const bal = getBalance(name);
-      const div = document.createElement('div'); div.className='customer-card';
-      div.innerHTML = `<div class="customer-header"><div><div class="customer-name">${name}</div><div class="customer-phone">${data.customers[name].phone || 'No phone'}</div></div><div class="balance ${bal>=0?'debit':'credit'}">Rs ${Math.abs(bal).toLocaleString()}</div></div><button class="btn btn-secondary btn-sm" onclick="openCustomer('${name}')">👁️ View Statement</button>`;
-      list.appendChild(div);
-    });
-    const dl = document.getElementById('customerNames'); if(dl) dl.innerHTML = Object.keys(data.customers).map(n => `<option value="${n}">`).join('');
-  }
-
-  function openCustomer(name){
-    currentCustomer=name;
-    document.getElementById('customerModal').classList.remove('hidden');
-    document.getElementById('modalCustName').textContent=name;
-    const bal=getBalance(name);
-    document.getElementById('modalBalance').textContent=`Rs ${Math.abs(bal).toLocaleString()}`;
-    const badge=document.getElementById('modalBalanceBadge');
-    if(bal>0) badge.innerHTML='<span class="balance-indicator owing">⚠️ UDHAR BAAQI</span>';
-    else if(bal<0) badge.innerHTML='<span class="balance-indicator advance">✅ ADVANCE JAMA</span>';
-    else badge.innerHTML='<span class="balance-indicator settled">✔️ HISAB CLEAR</span>';
-    document.getElementById('modalPhone').textContent=data.customers[name]?.phone?`📱 ${data.customers[name].phone}`:'📱 No phone';
-    document.getElementById('rCustName').textContent=name;
-    document.getElementById('rPhone').textContent=data.customers[name]?.phone||'N/A';
-    document.getElementById('rBalance').textContent=`Rs ${Math.abs(bal).toLocaleString()}/-`;
-    document.getElementById('rAmountWords').textContent=`Rupees ${numberToWords(Math.abs(bal))}`;
-    document.getElementById('rStatus').textContent=bal>0?'Payable':bal<0?'Advance':'Settled';
-    document.getElementById('rDate').textContent=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-    const txns=data.transactions.filter(t=>t.name===name);
-    document.getElementById('rTxnCount').textContent=txns.length;
-    document.getElementById('rRefNo').textContent=`REF: UBP-${Date.now().toString().slice(-8)}`;
-    document.getElementById('fsCustName').textContent=name;
-    const dates=txns.map(t=>t.date).sort();
-    document.getElementById('fsPeriod').textContent=dates.length?`${dates[0]} - ${dates[dates.length-1]}`:'N/A';
-    document.getElementById('fsBalance').textContent=`Rs ${Math.abs(bal).toLocaleString()}/-`;
-    const tbody=document.querySelector('#fsTable tbody'); if(tbody) tbody.innerHTML='';
-    let running=0;
-    [...txns].reverse().forEach(t=>{
-      running+=(t.type==='debit'?t.amount:-t.amount);
-      const row=tbody.insertRow();
-      row.innerHTML=`<td>${t.date}</td><td>${t.note||'-'}</td><td class="txn-debit">${t.type==='debit'?'Rs '+t.amount.toLocaleString():''}</td><td class="txn-credit">${t.type==='credit'?'Rs '+t.amount.toLocaleString():''}</td><td style="font-weight:600;">Rs ${Math.abs(running).toLocaleString()} ${running>=0?'(Dr)':'(Cr)'}</td>`;
-    });
-    document.getElementById('fsFooterBalance').textContent=`Rs ${Math.abs(bal).toLocaleString()}/-`;
-    document.getElementById('modalLedger').innerHTML=txns.length?txns.map(t=>`<div class="ledger-item"><div><div class="ledger-date">${t.date}</div><div>${t.note||'-'}</div></div><div class="ledger-type type-${t.type}">${t.type==='debit'?'📤':'📥'} Rs ${t.amount.toLocaleString()}</div></div>`).join(''):'<div style="text-align:center; padding:20px;">No transactions</div>';
-    document.getElementById('deleteCustBtn').onclick=()=>deleteCustomer(name);
-  }
+  function deleteCustomer(name) { if(confirm(`Delete ${name}?`)){ delete data.customers[name]; data.transactions = data.transactions.filter(t => t.name !== name); saveDataToCloud(); closeModal(); } }
+  function renderStats() { let totalD=0,totalC=0,overdue=0, today = new Date().toISOString().slice(0,10); Object.keys(data.customers).forEach(name => { totalD += data.customers[name].totalDebit||0; totalC += data.customers[name].totalCredit||0; if(data.customers[name].dueDate && data.customers[name].dueDate < today && getBalance(name)>0) overdue++; }); document.getElementById('totalDebit').textContent = `Rs ${totalD.toLocaleString()}`; document.getElementById('totalCredit').textContent = `Rs ${totalC.toLocaleString()}`; document.getElementById('totalOverdue').textContent = overdue; }
+  function renderCustomers() { const search = document.getElementById('searchInput').value.toLowerCase(); const list = document.getElementById('customerList'); list.innerHTML = ''; const names = Object.keys(data.customers).filter(n => n.toLowerCase().includes(search)); if(names.length===0){ list.innerHTML='<div class="card" style="text-align:center;">No customers</div>'; return; } names.forEach(name => { const bal = getBalance(name); const div = document.createElement('div'); div.className='customer-card'; div.innerHTML = `<div class="customer-header"><div><div class="customer-name">${name}</div><div class="customer-phone">${data.customers[name].phone || 'No phone'}</div></div><div class="balance ${bal>=0?'debit':'credit'}">Rs ${Math.abs(bal).toLocaleString()}</div></div><button class="btn btn-secondary btn-sm" onclick="openCustomer('${name}')">👁️ View Statement</button>`; list.appendChild(div); }); const dl = document.getElementById('customerNames'); if(dl) dl.innerHTML = Object.keys(data.customers).map(n => `<option value="${n}">`).join(''); }
+  function openCustomer(name){ currentCustomer=name; document.getElementById('customerModal').classList.remove('hidden'); document.getElementById('modalCustName').textContent=name; const bal=getBalance(name); document.getElementById('modalBalance').textContent=`Rs ${Math.abs(bal).toLocaleString()}`; const badge=document.getElementById('modalBalanceBadge'); if(bal>0) badge.innerHTML='<span class="balance-indicator owing">⚠️ UDHAR BAAQI</span>'; else if(bal<0) badge.innerHTML='<span class="balance-indicator advance">✅ ADVANCE JAMA</span>'; else badge.innerHTML='<span class="balance-indicator settled">✔️ HISAB CLEAR</span>'; document.getElementById('modalPhone').textContent=data.customers[name]?.phone?`📱 ${data.customers[name].phone}`:'📱 No phone'; document.getElementById('rCustName').textContent=name; document.getElementById('rPhone').textContent=data.customers[name]?.phone||'N/A'; document.getElementById('rBalance').textContent=`Rs ${Math.abs(bal).toLocaleString()}/-`; document.getElementById('rAmountWords').textContent=`Rupees ${numberToWords(Math.abs(bal))}`; document.getElementById('rStatus').textContent=bal>0?'Payable':bal<0?'Advance':'Settled'; document.getElementById('rDate').textContent=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); const txns=data.transactions.filter(t=>t.name===name); document.getElementById('rTxnCount').textContent=txns.length; document.getElementById('rRefNo').textContent=`REF: UBP-${Date.now().toString().slice(-8)}`; document.getElementById('fsCustName').textContent=name; const dates=txns.map(t=>t.date).sort(); document.getElementById('fsPeriod').textContent=dates.length?`${dates[0]} - ${dates[dates.length-1]}`:'N/A'; document.getElementById('fsBalance').textContent=`Rs ${Math.abs(bal).toLocaleString()}/-`; const tbody=document.querySelector('#fsTable tbody'); if(tbody) tbody.innerHTML=''; let running=0; [...txns].reverse().forEach(t=>{ running+=(t.type==='debit'?t.amount:-t.amount); const row=tbody.insertRow(); row.innerHTML=`<td>${t.date}</td><td>${t.note||'-'}</td><td class="txn-debit">${t.type==='debit'?'Rs '+t.amount.toLocaleString():''}</td><td class="txn-credit">${t.type==='credit'?'Rs '+t.amount.toLocaleString():''}</td><td style="font-weight:600;">Rs ${Math.abs(running).toLocaleString()} ${running>=0?'(Dr)':'(Cr)'}</td>`; }); document.getElementById('fsFooterBalance').textContent=`Rs ${Math.abs(bal).toLocaleString()}/-`; document.getElementById('modalLedger').innerHTML=txns.length?txns.map(t=>`<div class="ledger-item"><div><div class="ledger-date">${t.date}</div><div>${t.note||'-'}</div></div><div class="ledger-type type-${t.type}">${t.type==='debit'?'📤':'📥'} Rs ${t.amount.toLocaleString()}</div></div>`).join(''):'<div style="text-align:center; padding:20px;">No transactions</div>'; document.getElementById('deleteCustBtn').onclick=()=>deleteCustomer(name); }
   function closeModal(){ document.getElementById('customerModal').classList.add('hidden'); document.getElementById('receiptSummaryBox').style.display='none'; document.getElementById('receiptFullBox').style.display='none'; currentCustomer=null; }
   function numberToWords(num){ if(num===0) return 'Zero'; const ones=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen']; const tens=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety']; const scales=['','Thousand','Million','Billion']; function convertHundred(n){ let s=''; if(n>=100){ s+=ones[Math.floor(n/100)]+' Hundred '; n%=100; } if(n>=20){ s+=tens[Math.floor(n/10)]+' '; n%=10; } if(n>0) s+=ones[n]+' '; return s.trim(); } let n=Math.abs(Math.round(num)), words='', i=0; while(n>0){ if(n%1000!==0) words=convertHundred(n%1000)+' '+scales[i]+' '+words; n=Math.floor(n/1000); i++; } return words.trim()+' Only'; }
   function sendWhatsAppReminder(){ if(!currentCustomer) return; const phone=data.customers[currentCustomer]?.phone; if(!phone) return alert("WhatsApp number saved nahi hai!"); const bal=getBalance(currentCustomer); const msg=`Assalam-o-Alaikum, Aapke account ka kul baqi balance Rs ${Math.abs(bal).toLocaleString()} hai. Jald az jald tasdeeq karein.`; window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,'_blank'); }
@@ -489,43 +468,13 @@
   function renderAll(){ renderStats(); renderCustomers(); }
   function switchScreen(s){ document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active')); if(event?.currentTarget) event.currentTarget.classList.add('active'); ['home','add','report'].forEach(id=>document.getElementById(id+'Screen').classList.add('hidden')); document.getElementById(s+'Screen').classList.remove('hidden'); }
   function setTheme(t){ if(t==='emerald') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme',t); }
-  function logout(){ if(confirm('App data reset karein?')){ auth.signOut(); localStorage.removeItem('app_license_key'); location.reload(); } }
-  
-  // ########### DIRECT BACKUP / RESTORE (NO GOOGLE DRIVE) ###########
-  function exportBackupJSON(){
-    const exportData = JSON.stringify({ customers: data.customers, transactions: data.transactions, exportDate: new Date().toISOString() }, null, 2);
-    const blob = new Blob([exportData], {type: 'application/json'});
-    const a = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    a.href = url;
-    a.download = `UdharBook_Backup_${new Date().toISOString().slice(0,19)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    alert("✅ Data export complete! File saved locally.");
+  function logout(){ if(confirm('Sign out karein? Data cloud me safe rahega. Dobara sign in kar sakte hain.')){ auth.signOut().then(()=>{ localStorage.removeItem('app_license_key'); licenseKeyValidated = false; location.reload(); }); } }
+  function exportBackupJSON(){ const exportData = JSON.stringify({ customers: data.customers, transactions: data.transactions, exportDate: new Date().toISOString() }, null, 2); const blob = new Blob([exportData], {type: 'application/json'}); const a = document.createElement('a'); const url = URL.createObjectURL(blob); a.href = url; a.download = `UdharBook_Backup_${new Date().toISOString().slice(0,19)}.json`; a.click(); URL.revokeObjectURL(url); alert("✅ Data export complete! File saved locally."); }
+  function importBackupJSON(file){ if(!file) return; const reader = new FileReader(); reader.onload = function(e){ try{ const imported = JSON.parse(e.target.result); if(imported.customers && imported.transactions){ if(confirm("Restore se current data replace ho jayega? Pichli info delete ho sakti hai. Confirm karein?")){ data.customers = imported.customers; data.transactions = imported.transactions; saveDataToCloud(); renderAll(); alert("✅ Backup restored! Cloud sync ho gaya."); } } else alert("❌ Invalid backup file format."); }catch(err){ alert("Error parsing file."); } }; reader.readAsText(file); }
+  function setupReceiptHTML(){
+    document.getElementById('receiptSummaryBox').innerHTML = `<div class="bank-receipt-watermark">SUMMARY</div><div class="bank-receipt-header"><div class="bank-logo-area"><div class="bank-icon">UB</div><div class="bank-name">UdharBook PRO<small>Digital Ledger</small></div></div><div class="receipt-badge">SUMMARY SLIP</div></div><div class="bank-receipt-body"><div class="receipt-title">📋 Account Summary</div><div class="bank-row"><span class="bank-label">Account Holder</span><span class="bank-value" id="rCustName">-</span></div><div class="bank-row"><span class="bank-label">Contact</span><span class="bank-value" id="rPhone">-</span></div><div class="bank-row highlight"><span class="bank-label">Net Outstanding</span><span class="bank-value" id="rBalance">Rs 0</span></div><div class="bank-amount-words" id="rAmountWords">Rupees Zero Only</div><div class="bank-row"><span class="bank-label">Status</span><span class="bank-value" id="rStatus">-</span></div><div class="bank-row"><span class="bank-label">Statement Date</span><span class="bank-value" id="rDate">-</span></div><div class="bank-row"><span class="bank-label">Total Transactions</span><span class="bank-value" id="rTxnCount">0</span></div></div><div class="bank-barcode-strip"></div><div class="bank-ref-no" id="rRefNo">REF: UBP-00000000</div><div class="bank-receipt-footer"><span>Generated via UdharBook PRO</span><span class="footer-stamp">✅ VERIFIED</span></div>`;
+    document.getElementById('receiptFullBox').innerHTML = `<div class="bank-receipt-watermark">STATEMENT</div><div class="bank-receipt-header"><div class="bank-logo-area"><div class="bank-icon">UB</div><div class="bank-name">UdharBook PRO<small>Digital Ledger</small></div></div><div class="receipt-badge">FULL STATEMENT</div></div><div class="bank-receipt-body"><div class="receipt-title">📋 Complete Transaction Statement</div><div class="bank-row"><span class="bank-label">Customer</span><span class="bank-value" id="fsCustName">-</span></div><div class="bank-row"><span class="bank-label">Period</span><span class="bank-value" id="fsPeriod">-</span></div><div class="bank-row highlight"><span class="bank-label">Closing Balance</span><span class="bank-value" id="fsBalance">Rs 0</span></div><table class="statement-table" id="fsTable"><thead><tr><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead><tbody></tbody><tfoot><tr class="statement-footer-row"><td colspan="4">Closing Balance</td><td id="fsFooterBalance">Rs 0</td></tr></tfoot></table></div><div class="bank-barcode-strip"></div><div class="bank-ref-no">REF: FSUBP-00000000</div><div class="bank-receipt-footer"><span>Generated via UdharBook PRO</span><span class="footer-stamp">✅ VERIFIED</span></div>`;
   }
-
-  function importBackupJSON(file){
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e){
-      try{
-        const imported = JSON.parse(e.target.result);
-        if(imported.customers && imported.transactions){
-          if(confirm("Restore se current data replace ho jayega? Pichli info delete ho sakti hai. Confirm karein?")){
-            data.customers = imported.customers;
-            data.transactions = imported.transactions;
-            saveDataToCloud();
-            renderAll();
-            alert("✅ Backup successfully restored! Cloud sync ho gaya.");
-          }
-        } else alert("❌ Invalid backup file format.");
-      }catch(err){ alert("Error parsing file."); }
-    };
-    reader.readAsText(file);
-  }
-  // Set up receipt dynamic containers safely
-  const sumDiv = document.getElementById('receiptSummaryBox'); if(sumDiv && sumDiv.innerHTML === '...') sumDiv.innerHTML = `<div class="bank-receipt-watermark">SUMMARY</div><div class="bank-receipt-header"><div class="bank-logo-area"><div class="bank-icon">UB</div><div class="bank-name">UdharBook PRO<small>Digital Ledger</small></div></div><div class="receipt-badge">SUMMARY SLIP</div></div><div class="bank-receipt-body"><div class="receipt-title">📋 Account Summary</div><div class="bank-row"><span class="bank-label">Account Holder</span><span class="bank-value" id="rCustName">-</span></div><div class="bank-row"><span class="bank-label">Contact</span><span class="bank-value" id="rPhone">-</span></div><div class="bank-row highlight"><span class="bank-label">Net Outstanding</span><span class="bank-value" id="rBalance">Rs 0</span></div><div class="bank-amount-words" id="rAmountWords">Rupees Zero Only</div><div class="bank-row"><span class="bank-label">Status</span><span class="bank-value" id="rStatus">-</span></div><div class="bank-row"><span class="bank-label">Statement Date</span><span class="bank-value" id="rDate">-</span></div><div class="bank-row"><span class="bank-label">Total Transactions</span><span class="bank-value" id="rTxnCount">0</span></div></div><div class="bank-barcode-strip"></div><div class="bank-ref-no" id="rRefNo">REF: UBP-00000000</div><div class="bank-receipt-footer"><span>Generated via UdharBook PRO</span><span class="footer-stamp">✅ VERIFIED</span></div>`;
-  const fullDiv = document.getElementById('receiptFullBox'); if(fullDiv && fullDiv.innerHTML === '...') fullDiv.innerHTML = `<div class="bank-receipt-watermark">STATEMENT</div><div class="bank-receipt-header"><div class="bank-logo-area"><div class="bank-icon">UB</div><div class="bank-name">UdharBook PRO<small>Digital Ledger</small></div></div><div class="receipt-badge">FULL STATEMENT</div></div><div class="bank-receipt-body"><div class="receipt-title">📋 Complete Transaction Statement</div><div class="bank-row"><span class="bank-label">Customer</span><span class="bank-value" id="fsCustName">-</span></div><div class="bank-row"><span class="bank-label">Period</span><span class="bank-value" id="fsPeriod">-</span></div><div class="bank-row highlight"><span class="bank-label">Closing Balance</span><span class="bank-value" id="fsBalance">Rs 0</span></div><table class="statement-table" id="fsTable"><thead><tr><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead><tbody></tbody><tfoot><tr class="statement-footer-row"><td colspan="4">Closing Balance</td><td id="fsFooterBalance">Rs 0</td></tr></tfoot></table></div><div class="bank-barcode-strip"></div><div class="bank-ref-no">REF: FSUBP-00000000</div><div class="bank-receipt-footer"><span>Generated via UdharBook PRO</span><span class="footer-stamp">✅ VERIFIED</span></div>`;
 </script>
 </body>
 </html>
